@@ -2,6 +2,10 @@
 
 _Physics based scrolling._
 
+### Note
+
+I have no idea what I am doing, so if you find a problem with this plugin please let me know.
+
 ### Support
 
 _Vim_: 8.2.227  
