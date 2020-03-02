@@ -26,7 +26,7 @@
 
     " The resistant forces that change throughout the scrolling process
     let g:_scroll_friction = 80.0
-    let g:_scroll_drag = 2.0
+    let g:_scroll_air_drag = 2.0
 
     " The state of the system at any given time
     let g:_scroll_state = {
