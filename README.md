@@ -58,3 +58,4 @@ Most of this plugin is taken from [comfortable-motion.vim](https://github.com/yu
 ### TODO
 
 - Save mappings for visual mode as well.
+- Stop scrolling on focus change.

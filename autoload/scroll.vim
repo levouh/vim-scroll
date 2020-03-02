@@ -121,8 +121,8 @@
                            \ : l:st.velocity / abs(l:st.velocity)
 
             " The mass is 1.
-            let l:friction = -l:vel_sign * g:_qsc_friction * 1
-            let l:air_drag = -l:st.velocity * g:_qsc_air_drag
+            let l:friction = -l:vel_sign * g:_scroll_friction * 1
+            let l:air_drag = -l:st.velocity * g:_scroll_air_drag
             let l:additional_force = l:friction + l:air_drag
 
             " Update the state.
@@ -140,9 +140,9 @@
             endif
 
             if l:int_delta > 0
-                exe "normal! " . string(abs(l:int_delta)) . g:qsc_down_key
+                exe "normal! " . string(abs(l:int_delta)) . g:scroll_down_key
             elseif l:int_delta < 0
-                exe "normal! " . string(abs(l:int_delta)) . g:qcs_up_key
+                exe "normal! " . string(abs(l:int_delta)) . g:scroll_up_key
             endif
 
             redraw
