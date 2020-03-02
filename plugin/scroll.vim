@@ -8,8 +8,8 @@
 
 " --- Options
 
-    let g:scroll_down_key = get(g:, scroll_down_key, 'j')
-    let g:scroll_up_key = get(g:, scroll_up_key, 'k')
+    let g:scroll_down_key = get(g:, 'scroll_down_key', 'j')
+    let g:scroll_up_key = get(g:, 'scroll_up_key', 'k')
 
     if !exists('g:scroll_stop_keys')
         let g:scroll_stop_keys = [
