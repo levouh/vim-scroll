@@ -1,6 +1,6 @@
 " --- Verification
 
-    if exists('g:_loaded_scroll') || v:version < 802 || has('gui_running')
+    if exists('g:_loaded_scroll') || v:version < 802
         finish
     endif
 
@@ -10,14 +10,7 @@
 
     let g:scroll_down_key = get(g:, 'scroll_down_key', 'j')
     let g:scroll_up_key = get(g:, 'scroll_up_key', 'k')
-
-    if !exists('g:scroll_stop_keys')
-        let g:scroll_stop_keys = [
-                               \ "j",
-                               \ "k",
-                               \ "<Esc>"
-                               \ ]
-    endif
+    let g:scroll_opposite_behavior = get(g:, 'scroll_opposite_behavior', 0)
 
 " --- Variables
 

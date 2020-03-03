@@ -40,16 +40,6 @@
             endif
         endif
 
-        if !empty(g:scroll_stop_keys) && empty(g:_scroll_saved_mappings)
-            " Save mappings for keys used to stop the scrolling.
-            let g:_scroll_saved_mappings = s:scroll_save_mappings(g:scroll_stop_keys, "n", 1)
-
-            " Map requested keys to stop the scrolling.
-            for val in g:scroll_stop_keys
-                exe "nnoremap <silent> " . val . " :call s:scroll_flick(-1, 1)<CR>"
-            endfor
-        endif
-
         if !exists("g:_scroll_timer_id")
             " There is no thread, start one.
             let l:interval = float2nr(round(g:_scroll_interval))
@@ -63,7 +53,11 @@
 
         " Stop if velocity and impulse are opposite directions.
         if (l:st.velocity > 0 && a:impulse < 0) || (l:st.velocity < 0 && a:impulse > 0)
-            let g:_scroll_state.impulse -= l:st.velocity * 4 / 3
+            if (g:scroll_opposite_behavior)
+                let g:_scroll_state.impulse -= l:st.velocity * 4 / 3
+            else
+                call s:scroll_exit()
+            endif
         else
             let g:_scroll_state.impulse = a:impulse - l:st.velocity
         endif
@@ -73,16 +67,9 @@
 " --- Private Functions
 
     " Perform the screen or cursor scrolling.
-    function! s:scroll_flick(timer_id, ...)
+    function! s:scroll_flick(timer_id)
         " Local copy of global variable.
         let l:st = g:_scroll_state
-
-        if a:0
-            " Mappings to stop the scrolling was issued.
-            call s:scroll_exit()
-
-            return
-        endif
 
         " Only continue if the velocity is greater than 1, otherwise stop the timer and exit.
         if abs(l:st.velocity) >= 1 || l:st.impulse != 0
@@ -175,69 +162,4 @@
         if g:_scroll_state.relativenumber
             set relativenumber
         endif
-
-        if !empty(g:_scroll_saved_mappings)
-            call s:scroll_restore_mappings(g:_scroll_saved_mappings)
-            let g:_scroll_saved_mappings = {}
-        endif
-    endfunction
-
-    " Save a mapping that we can then restore later to allow exiting while scrolling.
-    function! s:scroll_save_mappings(keys, mode, global)
-        let l:mappings = {}
-
-        if a:global
-            for l:key in a:keys
-                let l:buf_local_map = maparg(l:key, a:mode, 0, 1)
-
-                silent! exe a:mode . "unmap <buffer> " . l:key
-
-                let l:map_info = maparg(l:key, a:mode, 0, 1)
-                let l:mappings[l:key] = !empty(l:map_info) ? l:map_info :
-                                      \ {
-                                      \ "unmapped" : 1,
-                                      \ "buffer"   : 0,
-                                      \ "lhs"      : l:key,
-                                      \ "mode"     : a:mode,
-                                      \ }
-
-                call s:scroll_restore_mappings({l:key : l:buf_local_map})
-            endfor
-
-        else
-            for l:key in a:keys
-                let l:map_info = maparg(l:key, a:mode, 0, 1)
-                let l:mappings[l:key] = !empty(l:map_info) ? l:map_info :
-                                      \ {
-                                      \ "unmapped" : 1,
-                                      \ "buffer"   : 1,
-                                      \ "lhs"      : l:key,
-                                      \ "mode"     : a:mode,
-                                      \ }
-            endfor
-        endif
-
-        return l:mappings
-    endfunction
-
-    " Restore a set of saved mappings
-    function! s:scroll_restore_mappings(mappings)
-        for mapping in values(a:mappings)
-            if !has_key(mapping, "unmapped") && !empty(mapping)
-                exe mapping.mode
-                    \ . (mapping.noremap ? "noremap   " : "map ")
-                    \ . (mapping.buffer  ? " <buffer> " : "")
-                    \ . (mapping.expr    ? " <expr>   " : "")
-                    \ . (mapping.nowait  ? " <nowait> " : "")
-                    \ . (mapping.silent  ? " <silent> " : "")
-                    \ .  mapping.lhs
-                    \ . " "
-                    \ . substitute(mapping.rhs, "<SID>", "<SNR>" . mapping.sid . "_", "g")
-
-            elseif has_key(mapping, "unmapped")
-                silent! exe mapping.mode . "unmap "
-                                  \ .(mapping.buffer ? " <buffer> " : "")
-                                  \ . mapping.lhs
-            endif
-        endfor
     endfunction

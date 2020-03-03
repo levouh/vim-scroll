@@ -39,14 +39,11 @@ let g:scroll_down_key = '<C-e>'
 let g:scroll_up_key = '<C-y>'
 ```
 
-You can also stop the scrolling in by adding a key to this list, or overriding it all together:
+By default, this plugin will stop the scrolling all together if you scroll in the opposite direction.
+If you wish to change this to instead continue scrolling but in the opposite direction, you can set:
 
 ```
-let g:scroll_stop_keys = [
-                       \ "j",
-                       \ "k",
-                       \ "<Esc>"
-                       \ ]
+let g:scroll_opposite_behavior = 1
 ```
 
 which for now will try to save your current mappings for those keys, but this may be removed in the future.
