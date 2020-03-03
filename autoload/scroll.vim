@@ -41,6 +41,8 @@
         endif
 
         if !exists("g:_scroll_timer_id")
+            let g:_scroll_winid = win_getid()
+
             " There is no thread, start one.
             let l:interval = float2nr(round(g:_scroll_interval))
 
@@ -68,6 +70,11 @@
 
     " Perform the screen or cursor scrolling.
     function! s:scroll_flick(timer_id)
+        if win_getid() != g:_scroll_winid
+            call s:scroll_exit()
+            return
+        endif
+
         " Local copy of global variable.
         let l:st = g:_scroll_state
 
@@ -143,6 +150,8 @@
     function! s:scroll_exit()
         " Stop scrolling by terminating the infinite callback to this function.
         call timer_stop(g:_scroll_timer_id)
+
+        unlet g:_scroll_winid
 
         " Free up for future calls.
         unlet g:_scroll_timer_id
