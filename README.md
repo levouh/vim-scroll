@@ -48,11 +48,14 @@ let g:scroll_opposite_behavior = 1
 
 which for now will try to save your current mappings for those keys, but this may be removed in the future.
 
+### Versus comfortable-motion.vim
+
+- Supports scrolling with visual selection.
+- Supports configurable continued/stopped scrolling when scrolling in the opposite direction.
+- Stops scrolling when the top or bottom of the buffer is hit.
+- Controls velocity so that is is rational.
+- Stop scrolling when window focus is changed.
+
 ### Mentions
 
 Most of this plugin is taken from [comfortable-motion.vim](https://github.com/yuttie/comfortable-motion.vim)
-
-### TODO
-
-- Save mappings for visual mode as well.
-- Stop scrolling on focus change.
