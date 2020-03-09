@@ -15,8 +15,10 @@
             endif
         endif
 
-        if a:is_visual
+        if a:is_visual && !g:_scroll_state.is_visual
             let g:_scroll_state.is_visual = 1
+
+            " Called from a visual mode mapping, setup the selection only once.
             if a:impulse > 0
                 " Scrolling down.
                 call setpos(".", getpos("'>"))
@@ -24,20 +26,20 @@
                 " Scrolling up.
                 call setpos(".", getpos("'<"))
             endif
+        endif
 
-            " Don't redraw during macros.
-            if &lazyredraw
-                let g:_scroll_state.lazyredraw = 1
-            else
-                let g:_scroll_state.lazyredraw = 0
-            endif
+        " Don't redraw during macros.
+        if &lazyredraw
+            let g:_scroll_state.lazyredraw = 1
+        else
+            let g:_scroll_state.lazyredraw = 0
+        endif
 
-            " Speed things up by not using relativenumber.
-            if &relativenumber
-                let g:_scroll_state.relativenumber = 1
-            else
-                let g:_scroll_state.relativenumber = 0
-            endif
+        " Speed things up by not using relativenumber.
+        if &relativenumber
+            let g:_scroll_state.relativenumber = 1
+        else
+            let g:_scroll_state.relativenumber = 0
         endif
 
         if !exists("g:_scroll_timer_id")
@@ -55,7 +57,7 @@
 
         " Stop if velocity and impulse are opposite directions.
         if (l:st.velocity > 0 && a:impulse < 0) || (l:st.velocity < 0 && a:impulse > 0)
-            if (g:scroll_opposite_behavior)
+            if g:scroll_opposite_behavior == 1
                 let g:_scroll_state.impulse -= l:st.velocity * 4 / 3
             else
                 call s:scroll_exit()
@@ -72,6 +74,7 @@
     function! s:scroll_flick(timer_id)
         if win_getid() != g:_scroll_winid
             call s:scroll_exit()
+
             return
         endif
 
@@ -87,11 +90,9 @@
             if l:st.impulse > 0
                 " Scroll down.
                 let l:end_of_buffer = line("$")
-                let l:vis_block = "w$"
             elseif l:st.impulse < 0
                 " Scroll up.
                 let l:end_of_buffer = 1
-                let l:vis_block = "w0"
             else
                 " Special case.
                 let l:end_of_buffer = 0
@@ -130,6 +131,7 @@
 
             if l:st.is_visual
                 exe "normal! \<ESC>"
+
                 normal! gv
             endif
 
