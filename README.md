@@ -8,8 +8,7 @@ I have no idea what I am doing, so if you find a problem with this plugin please
 
 ### Support
 
-_Vim_: 8.2.227  
-_OS_: Linux
+8.2.227+
 
 ### Installation
 
@@ -22,31 +21,45 @@ Plug 'levouh/vim-scroll'
 This plugin comes with no default mappings, but I'd recomend something like this:
 
 ```
-nnoremap <silent> <C-d> :call scroll#scroll(150, 0)<CR>
-xnoremap <silent> <C-d> :call scroll#scroll(150, 1)<CR>
-nnoremap <silent> <C-u> :call scroll#scroll(-150, 0)<CR>
-xnoremap <silent> <C-u> :call scroll#scroll(-150, 1)<CR>
+nnoremap <silent> <C-d> :ScrollUp 125<CR>
+nnoremap <silent> <C-u> :ScrollDown 125<CR>
+xnoremap <silent> <C-d> :<C-u>VScrollUp 125<CR>
+xnoremap <silent> <C-u> :<C-u>VScrollDown 125<CR>
 ```
 
-where the first argument is how strong you want the "flick" to me, and the second argument correlates to whether or not this is a visual mode mapping.
+where the argument is how strong you want the "flick" to be. The `<C-u>` prefix is necessary for visual mode mappings, and note the different commands.
 
 ### Configuration
 
-The default behavior of this plugin is to scroll the curson, but if you'd like it to scroll the screen instead:
+The default behavior of this plugin is to scroll the cursor, but if you'd like it to scroll the screen instead:
 
 ```
 let g:scroll_down_key = '<C-e>'
 let g:scroll_up_key = '<C-y>'
 ```
 
-By default, this plugin will stop the scrolling all together if you scroll in the opposite direction.
-If you wish to change this to instead continue scrolling but in the opposite direction, you can set:
+By default, this plugin will scroll in the opposite direction if you are using `ScrollDown` and the issue a `ScrollUp` for instance.
+If you want scrolling in the opposite direction to _stop_ the scrolling instead, you can set:
 
 ```
-let g:scroll_opposite_behavior = 1
+let g:scroll_opposite_behavior = 0
 ```
 
-which for now will try to save your current mappings for those keys, but this may be removed in the future.
+Because scrolling uses timers, the scroll you have setup might end up scrolling farther than you want.
+You can set keys that will stop the scrolling like so:
+
+```
+let g:scroll_stop_key = [
+                        \ "j",
+                        \ "k"
+                        \ ]
+```
+
+You can also just define a single key:
+
+```
+let g:scroll_stop_key = "\<Esc>"
+```
 
 ### Versus comfortable-motion.vim
 
@@ -55,6 +68,7 @@ which for now will try to save your current mappings for those keys, but this ma
 - Stops scrolling when the top or bottom of the buffer is hit.
 - Controls velocity so that is is rational.
 - Stop scrolling when window focus is changed.
+- User can defined additional mappings to stop the scrolling while it is happening..
 
 ### Mentions
 

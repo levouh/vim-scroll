@@ -1,31 +1,31 @@
-" --- Public Functions
+" --- Public Functions {{{
 
     " Move the cursor down the screen in a smooth fashion.
-    function! scroll#scroll(impulse, is_visual)
+    function! scroll#scroll(impulse, is_visual, is_down)
+        " Handle improper arguments being passed.
+        if a:impulse < 0
+            let l:impulse = a:impulse * -1
+        else
+            let l:impulse = a:impulse
+        endif
+
         " 'Stack up' multiple calls to scrolling, but prevent it from being infinite.
-        if a:impulse > 0
+        if a:is_down
             " Scrolling down.
-            if g:_scroll_state.impulse < a:impulse
-                let g:_scroll_state.impulse += a:impulse
+            let l:impulse = l:impulse * -1
+
+            if g:_scroll_state.impulse > l:impulse
+                let g:_scroll_state.impulse += l:impulse
             endif
         else
             " Scrolling up.
-            if g:_scroll_state.impulse > a:impulse
-                let g:_scroll_state.impulse += a:impulse
+            if g:_scroll_state.impulse < l:impulse
+                let g:_scroll_state.impulse += l:impulse
             endif
         endif
 
-        if a:is_visual && !g:_scroll_state.is_visual
-            let g:_scroll_state.is_visual = 1
-
-            " Called from a visual mode mapping, setup the selection only once.
-            if a:impulse > 0
-                " Scrolling down.
-                call setpos(".", getpos("'>"))
-            else
-                " Scrolling up.
-                call setpos(".", getpos("'<"))
-            endif
+        if a:is_visual
+            normal! gv
         endif
 
         " Don't redraw during macros.
@@ -43,6 +43,8 @@
         endif
 
         if !exists("g:_scroll_timer_id")
+            let g:_scroll_state.is_scrolling = 1
+
             let g:_scroll_winid = win_getid()
 
             " There is no thread, start one.
@@ -56,24 +58,53 @@
         let l:st = g:_scroll_state
 
         " Stop if velocity and impulse are opposite directions.
-        if (l:st.velocity > 0 && a:impulse < 0) || (l:st.velocity < 0 && a:impulse > 0)
+        if (l:st.velocity > 0 && l:impulse < 0) || (l:st.velocity < 0 && l:impulse > 0)
             if g:scroll_opposite_behavior == 1
                 let g:_scroll_state.impulse -= l:st.velocity * 4 / 3
             else
-                call s:scroll_exit()
+                call scroll#scroll_exit()
             endif
         else
-            let g:_scroll_state.impulse = a:impulse - l:st.velocity
+            let g:_scroll_state.impulse = l:impulse - l:st.velocity
         endif
     endfunction
 
+    " Stop the scrolling animation.
+    function! scroll#scroll_exit()
+        let g:_scroll_state.is_scrolling = 0
 
-" --- Private Functions
+        " Stop scrolling by terminating the infinite callback to this function.
+        call timer_stop(g:_scroll_timer_id)
+
+        unlet g:_scroll_winid
+
+        " Free up for future calls.
+        unlet g:_scroll_timer_id
+
+        " Make sure the state is reset if we are exiting.
+        let g:_scroll_state.velocity = 0.0
+        let g:_scroll_state.impulse = 0.0
+        let g:_scroll_state.delta = 0.0
+
+        " Restore redraw state.
+        if !g:_scroll_state.lazyredraw
+            set nolazyredraw
+        endif
+
+        " Restore relativenumber setting.
+        if g:_scroll_state.relativenumber
+            set relativenumber
+        endif
+    endfunction
+
+" }}}
+
+" --- Private Functions {{{
 
     " Perform the screen or cursor scrolling.
     function! s:scroll_flick(timer_id)
         if win_getid() != g:_scroll_winid
-            call s:scroll_exit()
+            call scroll#scroll_exit()
 
             return
         endif
@@ -101,7 +132,7 @@
             if l:cur_pos == l:end_of_buffer
                 " We are already at the top and scrolling up, or already at the bottom
                 " and srolling down.
-                call s:scroll_exit()
+                call scroll#scroll_exit()
 
                 " Exit as there is nothing left to do.
                 return
@@ -129,12 +160,6 @@
             let l:int_delta = float2nr(l:st.delta >= 0 ? floor(l:st.delta) : ceil(l:st.delta))
             let l:st.delta -= l:int_delta
 
-            if l:st.is_visual
-                exe "normal! \<ESC>"
-
-                normal! gv
-            endif
-
             if l:int_delta > 0
                 exe "normal! " . string(abs(l:int_delta)) . g:scroll_down_key
             elseif l:int_delta < 0
@@ -144,33 +169,8 @@
             redraw
         else
             " Stop scrolling.
-            call s:scroll_exit()
+            call scroll#scroll_exit()
         endif
     endfunction
 
-    " Stop the scrolling animation.
-    function! s:scroll_exit()
-        " Stop scrolling by terminating the infinite callback to this function.
-        call timer_stop(g:_scroll_timer_id)
-
-        unlet g:_scroll_winid
-
-        " Free up for future calls.
-        unlet g:_scroll_timer_id
-
-        " Make sure the state is reset if we are exiting.
-        let g:_scroll_state.velocity = 0.0
-        let g:_scroll_state.impulse = 0.0
-        let g:_scroll_state.delta = 0.0
-        let g:_scroll_state.is_visual = 0
-
-        " Restore redraw state.
-        if !g:_scroll_state.lazyredraw
-            set nolazyredraw
-        endif
-
-        " Restore relativenumber setting.
-        if g:_scroll_state.relativenumber
-            set relativenumber
-        endif
-    endfunction
+" }}}
